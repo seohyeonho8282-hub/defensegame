@@ -2,65 +2,69 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>귀여운 디펜스: 초대형 스케일 확장판</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>귀여운 디펜스: 모바일 확장판</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Comic Sans MS', 'Malgun Gothic', sans-serif; user-select: none; }
-        body { background-color: #f0f4f8; overflow: hidden; color: #333; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Comic Sans MS', 'Malgun Gothic', sans-serif; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        body { background-color: #0f172a; overflow: hidden; color: #333; touch-action: none; /* 브라우저 스크롤 완벽 차단 */ }
         
-        /* 7. 화면이 꽉 차게 변경 (100vw, 100vh) */
         #game-wrapper { width: 100vw; height: 100vh; display: flex; flex-direction: column; background: white; }
         
-        #top-bar { display: flex; justify-content: space-between; align-items: center; background: #e2e8f0; padding: 10px 25px; font-size: 16px; font-weight: bold; border-bottom: 3px solid #cbd5e1; height: 60px; z-index: 20; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .stat-box { display: flex; gap: 20px; align-items: center; }
+        /* 모바일에 맞춘 상단 UI (반응형 래핑) */
+        #top-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: #e2e8f0; padding: 8px 15px; font-size: 14px; font-weight: bold; border-bottom: 3px solid #cbd5e1; z-index: 20; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .stat-box { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
         .highlight { color: #3b82f6; }
         .danger { color: #ef4444; }
-        .boss-warn { color: #8b5cf6; animation: blink 1s infinite; }
+        .boss-warn { color: #8b5cf6; animation: blink 1s infinite; font-size: 16px; }
         
-        /* [추가] 제작자 표시 문구 스타일 */
-        .creator-logo { font-size: 18px; color: #1e293b; background: #ffffff; padding: 4px 16px; border-radius: 20px; border: 2px solid #cbd5e1; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* 제작자 표시 문구 스타일 */
+        .creator-logo { font-size: 14px; color: #1e293b; background: #ffffff; padding: 3px 12px; border-radius: 20px; border: 2px solid #cbd5e1; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin: 2px 0; }
 
-        /* 5. 내 레벨바 UI 구현 */
-        .exp-container { flex-grow: 1; max-width: 300px; margin: 0 20px; display: flex; align-items: center; gap: 10px; }
-        .exp-bar-bg { flex-grow: 1; height: 14px; background: #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        /* 레벨바 UI (모바일에서 공간 확보) */
+        .exp-container { flex-grow: 1; max-width: 200px; margin: 0 10px; display: flex; align-items: center; gap: 8px; min-width: 120px; }
+        .exp-bar-bg { flex-grow: 1; height: 12px; background: #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
         .exp-bar-fill { height: 100%; background: linear-gradient(90deg, #a855f7, #ec4899); width: 0%; transition: width 0.3s; }
-        .exp-text { color: #9333ea; font-size: 18px; white-space: nowrap; }
+        .exp-text { color: #9333ea; font-size: 14px; white-space: nowrap; font-weight: 900; }
 
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        canvas { background: #f8fafc; display: block; cursor: crosshair; flex-grow: 1; width: 100%; height: 100%; }
+        canvas { background: #f8fafc; display: block; cursor: crosshair; flex-grow: 1; width: 100%; height: 100%; touch-action: none; }
 
-        .overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; backdrop-filter: blur(5px); }
+        /* 오버레이 (카드 선택창 등) 모바일 스크롤 지원 */
+        .overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; backdrop-filter: blur(5px); padding: 20px; }
         .hidden { display: none !important; }
         
-        .overlay h2 { font-size: 32px; margin-bottom: 20px; color: #1e293b; text-align: center; }
-        .card-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; max-width: 900px; margin-bottom: 25px; }
+        .overlay h2 { font-size: 24px; margin-bottom: 15px; color: #1e293b; text-align: center; }
         
-        .choice-card { background: #ffffff; border: 3px solid #e2e8f0; border-radius: 15px; padding: 20px; width: 220px; text-align: center; cursor: pointer; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .choice-card:hover { transform: translateY(-5px); border-color: #60a5fa; box-shadow: 0 8px 20px rgba(96,165,250,0.3); }
-        .choice-card.selected { border-color: #cbd5e1; background: #f1f5f9; opacity: 0.5; cursor: not-allowed; transform: none; }
-        .choice-card h3 { color: #3b82f6; margin-bottom: 10px; font-size: 18px; }
-        .choice-card p { font-size: 14px; color: #64748b; line-height: 1.5; }
+        /* 모바일에서 카드들이 넘치면 스크롤 되도록 변경 */
+        .card-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 100%; max-height: 60vh; overflow-y: auto; margin-bottom: 20px; padding: 10px; }
+        
+        .choice-card { background: #ffffff; border: 3px solid #e2e8f0; border-radius: 15px; padding: 15px; width: 160px; text-align: center; cursor: pointer; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.05); flex-shrink: 0; }
+        .choice-card:hover { transform: translateY(-3px); border-color: #60a5fa; box-shadow: 0 8px 20px rgba(96,165,250,0.3); }
+        .choice-card.selected { border-color: #cbd5e1; background: #f1f5f9; opacity: 0.5; pointer-events: none; transform: none; }
+        .choice-card h3 { color: #3b82f6; margin-bottom: 8px; font-size: 16px; }
+        .choice-card p { font-size: 12px; color: #64748b; line-height: 1.4; }
 
-        .btn-cute { padding: 15px 40px; background: #3b82f6; color: white; border: none; border-radius: 30px; font-weight: bold; font-size: 18px; cursor: pointer; transition: background 0.2s; box-shadow: 0 5px 0 #2563eb; }
-        .btn-cute:hover { background: #60a5fa; }
-        .btn-cute:active { transform: translateY(5px); box-shadow: none; }
-        .btn-cute:disabled { background: #94a3b8; box-shadow: 0 5px 0 #64748b; cursor: not-allowed; }
+        .btn-cute { padding: 12px 30px; background: #3b82f6; color: white; border: none; border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 0 #2563eb; }
+        .btn-cute:active { transform: translateY(4px); box-shadow: none; }
+        .btn-cute:disabled { background: #94a3b8; box-shadow: 0 4px 0 #64748b; cursor: not-allowed; }
 
-        #respawn-text { font-size: 50px; color: #ef4444; font-weight: bold; }
-        #placing-guide { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(59, 130, 246, 0.9); color: white; padding: 15px 30px; border-radius: 30px; font-weight: bold; z-index: 5; font-size: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        #respawn-text { font-size: 40px; color: #ef4444; font-weight: bold; text-align: center; }
+        #placing-guide { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); background: rgba(59, 130, 246, 0.9); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; z-index: 5; font-size: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: none; white-space: nowrap; }
         
         .shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-2px, 2px, 0); } 20%, 80% { transform: translate3d(4px, -4px, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 6px, 0); } 40%, 60% { transform: translate3d(6px, -6px, 0); } }
+
+        /* 모바일 가이드 문구 */
+        .mobile-hint { color: #64748b; font-size: 12px; text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div id="game-wrapper">
         <div id="top-bar">
-            <div>☀️ Day <span id="ui-day" class="highlight">1</span> (<span id="ui-phase">아침</span>)</div>
+            <div>☀️ Day <span id="ui-day" class="highlight">1</span></div>
             
-            <!-- 5. 꽉 찬 레벨바 UI -->
             <div class="exp-container">
                 <span class="exp-text">Lv <span id="ui-level">1</span></span>
                 <div class="exp-bar-bg">
@@ -68,40 +72,39 @@
                 </div>
             </div>
 
-            <!-- 중앙 제작자 표시 라벨 추가 -->
             <div class="creator-logo">🛠️ <b>서현호 게임제작</b></div>
 
             <div class="stat-box">
-                <!-- 4. 남은 적 수 알림 -->
                 <div style="color: #f59e0b; font-weight: 900;">남은 적: <span id="ui-enemies-left">0</span></div>
                 <div>내 HP: <span id="ui-player-hp" class="highlight">100</span></div>
-                <div>기지 HP: <span id="ui-base-hp" class="danger">20</span></div>
+                <div>기지: <span id="ui-base-hp" class="danger">20</span></div>
                 <div>무기: <span id="ui-weapon" style="color:#10b981;">권총</span></div>
             </div>
         </div>
 
-        <div id="placing-guide" class="hidden">🖱️ 원하는 곳을 클릭하여 방어물을 설치하세요!</div>
+        <div id="placing-guide" class="hidden">화면을 터치하여 타워를 설치하세요!</div>
         <canvas id="gameCanvas"></canvas>
 
         <div id="morning-overlay" class="overlay">
-            <h2 id="morning-title">☀️ 아침이 밝았습니다. 카드를 고르세요!</h2>
+            <h2 id="morning-title">☀️ 방어 카드를 고르세요!</h2>
+            <div class="mobile-hint">가로 모드로 플레이하면 더 편합니다.</div>
             <div class="card-container" id="morning-cards"></div>
             <button id="start-night-btn" class="btn-cute" onclick="transitionToNight()" disabled>밤 맞이하기 🌙</button>
         </div>
 
         <div id="levelup-overlay" class="overlay hidden">
-            <h2>✨ 레벨 업! 능력을 선택하세요 ✨</h2>
+            <h2>✨ 능력을 선택하세요 ✨</h2>
             <div class="card-container" id="levelup-cards"></div>
         </div>
 
         <div id="respawn-overlay" class="overlay hidden">
             <h2>앗! 쓰러졌습니다 😵</h2>
-            <div id="respawn-text">10초 후 부활합니다</div>
+            <div id="respawn-text">10초 후 부활!</div>
         </div>
         
         <div id="gameover-overlay" class="overlay hidden">
-            <h2 style="color:#ef4444; font-size: 50px;">게임 오버 😭</h2>
-            <p style="margin-bottom: 30px; font-size: 20px; color: #64748b; font-weight:bold;">베이스캠프가 파괴되었습니다.</p>
+            <h2 style="color:#ef4444; font-size: 40px;">게임 오버 😭</h2>
+            <p style="margin-bottom: 20px; font-size: 16px; color: #64748b; font-weight:bold;">베이스캠프가 파괴되었습니다.</p>
             <button class="btn-cute" onclick="location.reload()">다시 시작하기 🔄</button>
         </div>
     </div>
@@ -111,12 +114,13 @@
     const ctx = canvas.getContext('2d');
     const gameWrapper = document.getElementById('game-wrapper');
 
-    let baseStation = { x: 0, y: 0, radius: 30 }; // 리사이즈 시 갱신
+    let baseStation = { x: 0, y: 0, radius: 25 }; 
 
-    // --- 7. 풀스크린 반응형 리사이즈 ---
     function resize() {
         canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight - 60; // top-bar 높이 제외
+        // top-bar의 실제 높이를 계산하여 캔버스 높이 설정 (모바일 래핑 대응)
+        let topBarHeight = document.getElementById('top-bar').offsetHeight;
+        canvas.height = window.innerHeight - topBarHeight; 
         baseStation.x = canvas.width / 2;
         baseStation.y = canvas.height / 2;
         if(gameState.phase === 'MORNING' && !player.isDead) {
@@ -124,107 +128,164 @@
         }
     }
     window.addEventListener('resize', resize);
+    // 화면 회전 시 딜레이 후 리사이즈
+    window.addEventListener('orientationchange', () => setTimeout(resize, 200)); 
 
-    // --- 게임 상태 ---
     let gameState = {
         phase: 'MORNING', day: 1, level: 1, exp: 0, maxExp: 50,
         baseHp: 20, maxBaseHp: 20, picksLeft: 2, placingCard: null,
         towerDmgBuff: 1, towerSpeedBuff: 1
     };
 
-    // --- 10. 플레이어 및 무기 스펙 ---
     let player = {
-        x: 0, y: 0, radius: 15, speed: 5, hp: 100, maxHp: 100, isDead: false,
+        x: 0, y: 0, radius: 12, speed: 4, hp: 100, maxHp: 100, isDead: false,
         weapon: '권총', dmg: 20, fireRate: 400, lastShot: 0, 
-        pellets: 1, // 동시 발사 수 (샷건용, 혹은 더블샷 업그레이드)
-        pierce: 0,  // 관통 횟수
-        bulletSize: 5
+        pellets: 1, pierce: 0, bulletSize: 4,
+        isShooting: false, aimAngle: 0 // 조이스틱 사격을 위한 변수
     };
 
     let towers = [];
     let enemies = [];
     let bullets = [];
-    let particles = []; // 3. 이펙트 파티클
+    let particles = [];
+    
+    // PC 호환성 키보드/마우스
     let keys = {};
     let mouse = { x: 0, y: 0, isClicked: false };
 
+    // --- 모바일 가상 조이스틱 시스템 ---
+    let joysticks = {
+        left: { active: false, id: null, ox: 0, oy: 0, cx: 0, cy: 0 },
+        right: { active: false, id: null, ox: 0, oy: 0, cx: 0, cy: 0 }
+    };
+
     window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
     window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+    
+    // PC 마우스
     canvas.addEventListener('mousemove', e => {
         const rect = canvas.getBoundingClientRect();
         mouse.x = e.clientX - rect.left; mouse.y = e.clientY - rect.top;
     });
+    canvas.addEventListener('mousedown', (e) => {
+        if (gameState.phase === 'PLACING') handlePlacement(e.clientX, e.clientY);
+        else mouse.isClicked = true;
+    });
+    canvas.addEventListener('mouseup', () => mouse.isClicked = false);
 
-    // 수동 건설 모드
-    canvas.addEventListener('mousedown', () => {
+    // 모바일 터치 이벤트
+    canvas.addEventListener('touchstart', e => {
+        e.preventDefault();
+        
+        if(gameState.phase === 'PLACING') {
+            let touch = e.changedTouches[0];
+            const rect = canvas.getBoundingClientRect();
+            handlePlacement(touch.clientX - rect.left, touch.clientY - rect.top);
+            return;
+        }
+
+        const rect = canvas.getBoundingClientRect();
+        for(let i=0; i<e.changedTouches.length; i++) {
+            let t = e.changedTouches[i];
+            let tx = t.clientX - rect.left;
+            let ty = t.clientY - rect.top;
+            
+            // 화면 왼쪽은 이동(Left), 오른쪽은 공격(Right)
+            if(tx < canvas.width / 2) {
+                joysticks.left.active = true; joysticks.left.id = t.identifier;
+                joysticks.left.ox = tx; joysticks.left.oy = ty;
+                joysticks.left.cx = tx; joysticks.left.cy = ty;
+            } else {
+                joysticks.right.active = true; joysticks.right.id = t.identifier;
+                joysticks.right.ox = tx; joysticks.right.oy = ty;
+                joysticks.right.cx = tx; joysticks.right.cy = ty;
+            }
+        }
+    }, {passive: false});
+
+    canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        for(let i=0; i<e.changedTouches.length; i++) {
+            let t = e.changedTouches[i];
+            let tx = t.clientX - rect.left;
+            let ty = t.clientY - rect.top;
+
+            if(joysticks.left.active && t.identifier === joysticks.left.id) {
+                joysticks.left.cx = tx; joysticks.left.cy = ty;
+            }
+            if(joysticks.right.active && t.identifier === joysticks.right.id) {
+                joysticks.right.cx = tx; joysticks.right.cy = ty;
+            }
+        }
+    }, {passive: false});
+
+    canvas.addEventListener('touchend', e => {
+        e.preventDefault();
+        for(let i=0; i<e.changedTouches.length; i++) {
+            let t = e.changedTouches[i];
+            if(joysticks.left.active && t.identifier === joysticks.left.id) joysticks.left.active = false;
+            if(joysticks.right.active && t.identifier === joysticks.right.id) joysticks.right.active = false;
+        }
+    }, {passive: false});
+
+    // 타워 설치 로직 통합 (PC + 모바일)
+    function handlePlacement(tx, ty) {
         if (gameState.phase === 'PLACING' && gameState.placingCard) {
-            let dist = Math.hypot(mouse.x - baseStation.x, mouse.y - baseStation.y);
-            if (dist > baseStation.radius + 20) { // 기지 안에는 설치 불가
+            let dist = Math.hypot(tx - baseStation.x, ty - baseStation.y);
+            if (dist > baseStation.radius + 20) {
                 let isWall = gameState.placingCard.id === 't_wall';
                 towers.push({ 
-                    x: mouse.x, y: mouse.y, type: gameState.placingCard.id, lastShot: 0, 
-                    hp: isWall ? 150 : null, maxHp: isWall ? 150 : null, radius: isWall ? 25 : 18 
+                    x: tx, y: ty, type: gameState.placingCard.id, lastShot: 0, 
+                    hp: isWall ? 150 : null, maxHp: isWall ? 150 : null, radius: isWall ? 20 : 15 
                 });
                 gameState.placingCard = null;
                 document.getElementById('placing-guide').classList.add('hidden');
                 
+                gameState.phase = 'MORNING';
+                document.getElementById('morning-overlay').classList.remove('hidden');
+                
                 if (gameState.picksLeft <= 0) {
-                    gameState.phase = 'MORNING';
-                    document.getElementById('morning-overlay').classList.remove('hidden');
-                    document.getElementById('morning-title').innerText = "배치가 완료되었습니다!";
+                    document.getElementById('morning-title').innerText = "배치 완료!";
                     document.getElementById('morning-cards').innerHTML = ''; 
                     document.getElementById('start-night-btn').disabled = false;
-                } else {
-                    gameState.phase = 'MORNING';
-                    document.getElementById('morning-overlay').classList.remove('hidden');
                 }
             }
-        } else {
-            mouse.isClicked = true;
         }
-    });
-    canvas.addEventListener('mouseup', () => mouse.isClicked = false);
+    }
 
-    // --- 3. 화면 흔들림 효과 ---
     function triggerShake() {
         gameWrapper.classList.remove('shake');
-        void gameWrapper.offsetWidth; // 리플로우 강제 트리거
+        void gameWrapper.offsetWidth; 
         gameWrapper.classList.add('shake');
     }
 
-    // --- 3. 파티클 이펙트 생성 ---
     function createParticles(x, y, color, count) {
         for(let i=0; i<count; i++) {
             particles.push({
-                x, y, 
-                vx: (Math.random() - 0.5) * 8, 
-                vy: (Math.random() - 0.5) * 8, 
-                life: 1.0, 
-                color,
-                size: Math.random() * 4 + 2
+                x, y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, 
+                life: 1.0, color, size: Math.random() * 4 + 2
             });
         }
     }
 
-    // --- 2 & 9. 다양한 방어 카드들 (벽 포함) ---
     const defenseCardPool = [
-        { id: 't_basic', name: '🟢 콩알 타워', desc: '가장 가까운 적에게 빠르게 작은 총알을 쏩니다.' },
-        { id: 't_cannon', name: '🔴 대포 타워', desc: '느리지만 매우 강력한 데미지를 줍니다.' },
-        { id: 't_ice', name: '🔵 얼음 타워', desc: '적을 맞추면 이동 속도를 늦춥니다.' },
-        { id: 't_laser', name: '⚡ 레이저 타워', desc: '가까운 적을 지속적으로 지지는 레이저를 발사합니다.' },
-        { id: 't_sniper', name: '🎯 저격 타워', desc: '사거리가 맵 전체이며, 적을 관통하는 총알을 매우 느리게 쏩니다.' },
-        { id: 't_wall', name: '🧱 튼튼한 방어벽', desc: '적의 길을 막고 공격을 대신 맞아주는 벽을 설치합니다.' },
-        { id: 's_heal', name: '💖 기지 긴급 수리', desc: '즉시 베이스캠프 체력을 15 회복합니다.' }
+        { id: 't_basic', name: '🟢 콩알 타워', desc: '빠르게 총알을 쏩니다.' },
+        { id: 't_cannon', name: '🔴 대포 타워', desc: '느리지만 매우 강력합니다.' },
+        { id: 't_ice', name: '🔵 얼음 타워', desc: '적 이동 속도를 늦춥니다.' },
+        { id: 't_laser', name: '⚡ 레이저 타워', desc: '근접한 적을 지집니다.' },
+        { id: 't_sniper', name: '🎯 저격 타워', desc: '맵 전체 사거리, 강력한 관통.' },
+        { id: 't_wall', name: '🧱 방어벽', desc: '적의 길을 막고 대신 맞습니다.' },
+        { id: 's_heal', name: '💖 기지 수리', desc: '기지 체력을 15 회복합니다.' }
     ];
 
     function initMorning() {
         gameState.phase = 'MORNING';
         gameState.picksLeft = (gameState.day === 1) ? 2 : 1;
         
-        document.getElementById('ui-phase').innerText = '아침';
         document.getElementById('morning-overlay').classList.remove('hidden');
         document.getElementById('start-night-btn').disabled = true;
-        document.getElementById('morning-title').innerText = `☀️ ${gameState.day}일차 아침: 카드를 ${gameState.picksLeft}장 고르세요!`;
+        document.getElementById('morning-title').innerText = `☀️ ${gameState.day}일차: 카드를 ${gameState.picksLeft}장 고르세요!`;
         
         const container = document.getElementById('morning-cards');
         container.innerHTML = '';
@@ -255,7 +316,7 @@
         } else {
             if (card.id === 's_heal') gameState.baseHp = Math.min(gameState.maxBaseHp, gameState.baseHp + 15);
             if (gameState.picksLeft <= 0) {
-                document.getElementById('morning-title').innerText = "배치가 완료되었습니다!";
+                document.getElementById('morning-title').innerText = "배치 완료!";
                 document.getElementById('start-night-btn').disabled = false;
             }
         }
@@ -264,28 +325,25 @@
     function transitionToNight() {
         document.getElementById('morning-overlay').classList.add('hidden');
         gameState.phase = 'NIGHT';
-        document.getElementById('ui-phase').innerText = '밤';
         spawnEnemies();
         updateUI();
     }
 
-    // --- 6. 5라운드 마다 보스 등장 ---
     function spawnEnemies() {
         enemies = [];
         let isBossRound = (gameState.day % 5 === 0);
-        let count = isBossRound ? 5 : 8 + (gameState.day * 4); // 보스 라운드엔 잔챙이 조금 + 보스
+        let count = isBossRound ? 4 : 6 + (gameState.day * 3); 
         let spawnDist = Math.max(canvas.width, canvas.height) / 2 + 50;
 
         if (isBossRound) {
             let angle = Math.random() * Math.PI * 2;
-            triggerShake(); // 보스 등장 시 화면 흔들림
+            triggerShake();
             enemies.push({ 
-                x: baseStation.x + Math.cos(angle) * spawnDist, 
-                y: baseStation.y + Math.sin(angle) * spawnDist, 
-                hp: gameState.day * 300, maxHp: gameState.day * 300, 
-                speed: 0.6, exp: 200, radius: 45, type: 'boss', isSlowed: false 
+                x: baseStation.x + Math.cos(angle) * spawnDist, y: baseStation.y + Math.sin(angle) * spawnDist, 
+                hp: gameState.day * 200, maxHp: gameState.day * 200, 
+                speed: 0.5, exp: 200, radius: 35, type: 'boss', isSlowed: false 
             });
-            document.getElementById('ui-phase').innerHTML = '<span class="boss-warn">⚠️ 보스 출현 ⚠️</span>';
+            document.getElementById('ui-phase') ? document.getElementById('ui-phase').innerHTML = '<span class="boss-warn">⚠️ 보스 출현 ⚠️</span>' : null;
         }
 
         for (let i = 0; i < count; i++) {
@@ -295,47 +353,36 @@
             
             let r = Math.random();
             let type = 'normal';
-            let hp = 40 + (gameState.day * 20);
-            let speed = 1.2 + (gameState.day * 0.02); 
-            let exp = 15; let radius = 14;
+            let hp = 30 + (gameState.day * 15);
+            let speed = 1.0 + (gameState.day * 0.02); 
+            let exp = 15; let radius = 12;
 
-            if (r > 0.8) { type = 'tank'; hp *= 3; speed *= 0.5; exp = 35; radius = 20; } 
-            else if (r > 0.6) { type = 'fast'; hp *= 0.6; speed *= 2.0; exp = 20; radius = 10; }
+            if (r > 0.8) { type = 'tank'; hp *= 3; speed *= 0.5; exp = 35; radius = 18; } 
+            else if (r > 0.6) { type = 'fast'; hp *= 0.6; speed *= 1.8; exp = 20; radius = 9; }
 
             enemies.push({ x, y, hp, maxHp: hp, speed, exp, radius, type, isSlowed: false });
         }
     }
 
-    // --- 1, 8, 10. 업그레이드 리스트 다양화 ---
     function generateUpgrades() {
         let choices = [];
-        
-        // 1. 타워 공통/랜덤 업그레이드
-        choices.push({ id: 't_dmg', name: '🛠️ 타워 파괴력업', desc: '모든 타워의 데미지가 30% 증가합니다.' });
-        choices.push({ id: 't_speed', name: '⚙️ 타워 공속업', desc: '모든 타워의 공격 속도가 20% 빨라집니다.' });
-        choices.push({ id: 'p_heal', name: '💊 영웅 체력 단련', desc: '최대 체력이 30 증가하고 즉시 100% 회복합니다.' });
-        choices.push({ id: 'p_speed', name: '👟 신발 강화', desc: '영웅의 이동 속도가 빨라집니다.' });
+        choices.push({ id: 't_dmg', name: '🛠️ 타워 파괴력업', desc: '타워 데미지 30% 증가' });
+        choices.push({ id: 't_speed', name: '⚙️ 타워 공속업', desc: '타워 공속 20% 증가' });
+        choices.push({ id: 'p_heal', name: '💊 영웅 체력 단련', desc: '최대 체력 +30 및 회복' });
+        choices.push({ id: 'p_speed', name: '👟 신발 강화', desc: '이동 속도 증가' });
 
-        // 8 & 10. 총기 교체 및 전용 업그레이드 (쌍발, 관통 등)
         if (player.weapon === '권총') {
-            choices.push({ id: 'w_smg', name: '🔫 무기: 따발총', desc: '공격력은 낮지만 엄청난 속도로 연사합니다.' });
-            choices.push({ id: 'w_shotgun', name: '💥 무기: 샷건', desc: '한 번에 3발의 산탄을 쏩니다.' });
-            choices.push({ id: 'w_sniper', name: '🔭 무기: 저격총', desc: '적을 관통하는 강력하고 거대한 총알을 쏩니다.' });
+            choices.push({ id: 'w_smg', name: '🔫 따발총', desc: '빠른 연사' });
+            choices.push({ id: 'w_shotgun', name: '💥 샷건', desc: '3발 산탄 사격' });
+            choices.push({ id: 'w_sniper', name: '🔭 저격총', desc: '강력한 관통 사격' });
         } else {
-            // 공통 총기 업그레이드 (더블샷)
-            if (player.pellets === 1 && player.weapon !== '샷건') {
-                choices.push({ id: 'u_double', name: '✌️ 쌍발 사격', desc: '한 번에 두 발의 총알을 평행하게 발사합니다.' });
-            }
-            choices.push({ id: 'u_dmg', name: '🔥 총알 화력업', desc: '총의 기본 데미지가 크게 상승합니다.' });
-            choices.push({ id: 'u_pierce', name: '🪡 철갑탄 (관통)', desc: '총알이 적을 한 번 관통하여 뒤의 적도 맞춥니다.' });
+            if (player.pellets === 1 && player.weapon !== '샷건') choices.push({ id: 'u_double', name: '✌️ 쌍발 사격', desc: '2발 평행 발사' });
+            choices.push({ id: 'u_dmg', name: '🔥 화력업', desc: '기본 데미지 크게 상승' });
+            choices.push({ id: 'u_pierce', name: '🪡 철갑탄', desc: '적 관통력 증가' });
         }
         
-        if (player.weapon === '샷건') {
-            choices.push({ id: 'u_spread', name: '🎇 샷건 탄창업', desc: '발사되는 산탄의 개수가 2개 늘어납니다.' });
-        }
-        if (player.weapon === '따발총') {
-            choices.push({ id: 'u_fireRate', name: '⚡ 극한의 연사', desc: '따발총의 연사 속도가 한계까지 빨라집니다.' });
-        }
+        if (player.weapon === '샷건') choices.push({ id: 'u_spread', name: '🎇 탄창업', desc: '산탄 수 +2' });
+        if (player.weapon === '따발총') choices.push({ id: 'u_fireRate', name: '⚡ 극한 연사', desc: '연사 속도 한계 돌파' });
 
         return choices.sort(() => 0.5 - Math.random()).slice(0, 3);
     }
@@ -371,11 +418,11 @@
     }
 
     function applyUpgrade(id) {
-        if (id === 'w_smg') { player.weapon = '따발총'; player.dmg = 12; player.fireRate = 120; player.pierce = 0; player.bulletSize = 4; }
-        else if (id === 'w_shotgun') { player.weapon = '샷건'; player.dmg = 20; player.fireRate = 700; player.pellets = 3; player.pierce = 0; player.bulletSize = 5; }
-        else if (id === 'w_sniper') { player.weapon = '저격총'; player.dmg = 80; player.fireRate = 1200; player.pierce = 3; player.bulletSize = 8; }
+        if (id === 'w_smg') { player.weapon = '따발총'; player.dmg = 12; player.fireRate = 120; player.pierce = 0; player.bulletSize = 3; }
+        else if (id === 'w_shotgun') { player.weapon = '샷건'; player.dmg = 20; player.fireRate = 700; player.pellets = 3; player.pierce = 0; player.bulletSize = 4; }
+        else if (id === 'w_sniper') { player.weapon = '저격총'; player.dmg = 80; player.fireRate = 1200; player.pierce = 3; player.bulletSize = 6; }
         else if (id === 'p_heal') { player.maxHp += 30; player.hp = player.maxHp; }
-        else if (id === 'p_speed') { player.speed += 1.5; }
+        else if (id === 'p_speed') { player.speed += 1.2; }
         else if (id === 't_dmg') { gameState.towerDmgBuff += 0.3; }
         else if (id === 't_speed') { gameState.towerSpeedBuff -= 0.2; }
         else if (id === 'u_double') { player.pellets = 2; }
@@ -384,7 +431,7 @@
         else if (id === 'u_spread') { player.pellets += 2; }
         else if (id === 'u_fireRate') { player.fireRate = Math.max(50, player.fireRate - 30); }
         
-        createParticles(player.x, player.y, '#fbbf24', 30); // 렙업 이펙트
+        createParticles(player.x, player.y, '#fbbf24', 30); 
         updateUI();
     }
 
@@ -392,7 +439,7 @@
         if (player.isDead) return;
         player.isDead = true; player.hp = 0;
         triggerShake();
-        createParticles(player.x, player.y, '#ef4444', 50); // 사망 이펙트
+        createParticles(player.x, player.y, '#ef4444', 50);
         document.getElementById('respawn-overlay').classList.remove('hidden');
         
         let timer = 10;
@@ -414,27 +461,56 @@
     function update() {
         if (gameState.phase !== 'NIGHT') return;
 
-        // 플레이어 이동
+        // --- 플레이어 컨트롤 (조이스틱 & PC 혼합) ---
         if (!player.isDead) {
+            // PC 키보드
             if (keys['w'] && player.y > 0) player.y -= player.speed;
             if (keys['s'] && player.y < canvas.height) player.y += player.speed;
             if (keys['a'] && player.x > 0) player.x -= player.speed;
             if (keys['d'] && player.x < canvas.width) player.x += player.speed;
 
-            // 총기 사격 메커니즘 (더블샷, 샷건)
+            // 모바일 왼쪽 조이스틱 (이동)
+            if (joysticks.left.active) {
+                let dx = joysticks.left.cx - joysticks.left.ox;
+                let dy = joysticks.left.cy - joysticks.left.oy;
+                let dist = Math.hypot(dx, dy);
+                if (dist > 5) {
+                    let moveAngle = Math.atan2(dy, dx);
+                    player.x += Math.cos(moveAngle) * player.speed;
+                    player.y += Math.sin(moveAngle) * player.speed;
+                    // 화면 밖으로 안나가게
+                    player.x = Math.max(0, Math.min(canvas.width, player.x));
+                    player.y = Math.max(0, Math.min(canvas.height, player.y));
+                }
+            }
+
+            // 사격 플래그 및 각도 계산
+            player.isShooting = false;
+            if (joysticks.right.active) { // 모바일 오른쪽 조이스틱 (사격)
+                let dx = joysticks.right.cx - joysticks.right.ox;
+                let dy = joysticks.right.cy - joysticks.right.oy;
+                if (Math.hypot(dx, dy) > 5) {
+                    player.isShooting = true;
+                    player.aimAngle = Math.atan2(dy, dx);
+                }
+            } else if (mouse.isClicked) { // PC 마우스 사격
+                player.isShooting = true;
+                player.aimAngle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+            }
+
+            // 총기 사격 실행
             let now = Date.now();
-            if (mouse.isClicked && now - player.lastShot > player.fireRate) {
-                let angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-                
+            if (player.isShooting && now - player.lastShot > player.fireRate) {
+                let angle = player.aimAngle;
                 if (player.weapon === '샷건') {
-                    let spreadAngle = 0.2; 
+                    let spreadAngle = 0.25; 
                     let startAngle = angle - (spreadAngle * (player.pellets - 1)) / 2;
                     for (let i = 0; i < player.pellets; i++) {
                         bullets.push({ x: player.x, y: player.y, vx: Math.cos(startAngle + spreadAngle * i)*10, vy: Math.sin(startAngle + spreadAngle * i)*10, dmg: player.dmg, pierce: player.pierce, isPlayer: true, size: player.bulletSize, hitSet: new Set() });
                     }
-                } else if (player.pellets === 2) { // 더블샷 나란히 쏘기
-                    let offsetX = Math.cos(angle + Math.PI/2) * 8;
-                    let offsetY = Math.sin(angle + Math.PI/2) * 8;
+                } else if (player.pellets === 2) { // 쌍발
+                    let offsetX = Math.cos(angle + Math.PI/2) * 6;
+                    let offsetY = Math.sin(angle + Math.PI/2) * 6;
                     bullets.push({ x: player.x + offsetX, y: player.y + offsetY, vx: Math.cos(angle)*12, vy: Math.sin(angle)*12, dmg: player.dmg, pierce: player.pierce, isPlayer: true, size: player.bulletSize, hitSet: new Set() });
                     bullets.push({ x: player.x - offsetX, y: player.y - offsetY, vx: Math.cos(angle)*12, vy: Math.sin(angle)*12, dmg: player.dmg, pierce: player.pierce, isPlayer: true, size: player.bulletSize, hitSet: new Set() });
                 } else { // 기본 한발
@@ -451,18 +527,17 @@
             if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) { bullets.splice(i, 1); }
         }
 
-        // 파티클 이동 및 소멸
+        // 파티클
         for (let i = particles.length - 1; i >= 0; i--) {
             let p = particles[i];
             p.x += p.vx; p.y += p.vy; p.life -= 0.05;
             if(p.life <= 0) particles.splice(i, 1);
         }
 
-        // 적 AI 및 충돌 판정
+        // 적 AI
         for (let i = enemies.length - 1; i >= 0; i--) {
             let e = enemies[i];
             
-            // 타겟팅
             let targetX = baseStation.x; let targetY = baseStation.y;
             if (!player.isDead && Math.hypot(player.x - e.x, player.y - e.y) < 200) {
                 targetX = player.x; targetY = player.y;
@@ -474,37 +549,33 @@
             let nextX = e.x + Math.cos(angle) * currentSpeed;
             let nextY = e.y + Math.sin(angle) * currentSpeed;
 
-            // 9. 방어벽(t_wall) 충돌 판정
+            // 벽 충돌
             let hittingWall = null;
             for(let j = towers.length - 1; j >= 0; j--) {
                 let t = towers[j];
                 if(t.type === 't_wall' && Math.hypot(nextX - t.x, nextY - t.y) < e.radius + t.radius) {
                     hittingWall = t;
-                    t.hp -= e.type === 'boss' ? 5 : 0.5; // 보스는 벽을 순식간에 부숨
-                    if(t.hp <= 0) towers.splice(j, 1); // 벽 파괴
+                    t.hp -= e.type === 'boss' ? 5 : 0.5; 
+                    if(t.hp <= 0) towers.splice(j, 1); 
                     break; 
                 }
             }
 
-            if(hittingWall) {
-                // 벽에 막히면 안 움직임
-            } else {
-                e.x = nextX; e.y = nextY;
-            }
+            if(!hittingWall) { e.x = nextX; e.y = nextY; }
 
-            // 영웅 충돌
+            // 영웅 피격
             if (!player.isDead && Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius) {
                 player.hp -= (e.type === 'boss' ? 2 : 0.5);
-                triggerShake(); // 맞을때마다 약한 흔들림
+                triggerShake();
                 if (player.hp <= 0) playerDie();
                 updateUI();
             }
 
-            // 기지 충돌
+            // 기지 피격
             if (Math.hypot(baseStation.x - e.x, baseStation.y - e.y) < baseStation.radius + e.radius) {
                 gameState.baseHp -= (e.type === 'boss' ? 10 : 1);
                 triggerShake();
-                createParticles(baseStation.x, baseStation.y, '#ef4444', 20);
+                createParticles(baseStation.x, baseStation.y, '#ef4444', 15);
                 enemies.splice(i, 1);
                 if (gameState.baseHp <= 0) {
                     gameState.phase = 'GAMEOVER';
@@ -514,23 +585,23 @@
                 continue;
             }
 
-            // 총알 피격 판정 (관통 적용)
+            // 총알 피격
             for (let j = bullets.length - 1; j >= 0; j--) {
                 let b = bullets[j];
                 if (!b.hitSet.has(e) && Math.hypot(e.x - b.x, e.y - b.y) < e.radius + b.size) {
                     e.hp -= b.dmg;
                     b.hitSet.add(e);
-                    createParticles(e.x, e.y, b.isPlayer ? '#fbbf24' : '#60a5fa', 5); // 타격 이펙트
+                    createParticles(e.x, e.y, b.isPlayer ? '#fbbf24' : '#60a5fa', 5); 
 
                     if(b.type === 'ice') e.isSlowed = true;
                     
                     if (b.pierce <= 0) { bullets.splice(j, 1); } 
-                    else { b.pierce--; } // 관통 횟수 차감
+                    else { b.pierce--; } 
                     
                     if (e.hp <= 0) {
                         gainExp(e.exp); 
-                        createParticles(e.x, e.y, e.type==='boss'?'#8b5cf6':'#ef4444', e.type==='boss'?50:15); // 처치 이펙트
-                        if(e.type === 'boss') triggerShake(); // 보스 죽으면 흔들림
+                        createParticles(e.x, e.y, e.type==='boss'?'#8b5cf6':'#ef4444', e.type==='boss'?40:10);
+                        if(e.type === 'boss') triggerShake();
                         enemies.splice(i, 1); 
                         break;
                     }
@@ -541,10 +612,10 @@
         // 타워 자동 사격 
         let now = Date.now();
         towers.forEach(t => {
-            if(t.type === 't_wall') return; // 벽은 공격 안함
+            if(t.type === 't_wall') return; 
 
             let target = null;
-            let minDist = t.type === 't_sniper' ? 9999 : (t.type === 't_laser' ? 200 : 250);
+            let minDist = t.type === 't_sniper' ? 9999 : (t.type === 't_laser' ? 150 : 200);
             enemies.forEach(e => {
                 let d = Math.hypot(e.x - t.x, e.y - t.y);
                 if (d < minDist) { minDist = d; target = e; }
@@ -552,23 +623,22 @@
 
             if (target) {
                 if (t.type === 't_laser') {
-                    // 레이저는 지속 딜 & 선 그리기 (Draw에서 선을 그림, 여기선 데미지만)
                     target.hp -= 2 * gameState.towerDmgBuff;
-                    t.isShooting = target; // draw용
+                    t.isShooting = target;
                     if(target.hp <= 0) { gainExp(target.exp); enemies = enemies.filter(en=>en!==target); t.isShooting=null; }
                 } else {
                     t.isShooting = null;
                     if (t.type === 't_basic' && now - t.lastShot > 400 * gameState.towerSpeedBuff) {
                         let angle = Math.atan2(target.y - t.y, target.x - t.x);
-                        bullets.push({ x: t.x, y: t.y, vx: Math.cos(angle)*9, vy: Math.sin(angle)*9, dmg: 15 * gameState.towerDmgBuff, size:4, hitSet: new Set(), pierce: 0 });
+                        bullets.push({ x: t.x, y: t.y, vx: Math.cos(angle)*8, vy: Math.sin(angle)*8, dmg: 15 * gameState.towerDmgBuff, size:3, hitSet: new Set(), pierce: 0 });
                         t.lastShot = now;
                     } else if (t.type === 't_cannon' && now - t.lastShot > 1500 * gameState.towerSpeedBuff) {
                         let angle = Math.atan2(target.y - t.y, target.x - t.x);
-                        bullets.push({ x: t.x, y: t.y, vx: Math.cos(angle)*6, vy: Math.sin(angle)*6, dmg: 50 * gameState.towerDmgBuff, size:8, color: '#ef4444', hitSet: new Set(), pierce: 0 });
+                        bullets.push({ x: t.x, y: t.y, vx: Math.cos(angle)*5, vy: Math.sin(angle)*5, dmg: 50 * gameState.towerDmgBuff, size:6, color: '#ef4444', hitSet: new Set(), pierce: 0 });
                         t.lastShot = now;
                     } else if (t.type === 't_ice' && now - t.lastShot > 800 * gameState.towerSpeedBuff) {
                         let angle = Math.atan2(target.y - t.y, target.x - t.x);
-                        bullets.push({ x: t.x, y: t.y, vx: Math.cos(angle)*7, vy: Math.sin(angle)*7, dmg: 5 * gameState.towerDmgBuff, type: 'ice', size:5, color: '#38bdf8', hitSet: new Set(), pierce: 0 });
+                        bullets.push({ x: t.x, y: t.y, vx: Math.cos(angle)*6, vy: Math.sin(angle)*6, dmg: 5 * gameState.towerDmgBuff, type: 'ice', size:4, color: '#38bdf8', hitSet: new Set(), pierce: 0 });
                         t.lastShot = now;
                     } else if (t.type === 't_sniper' && now - t.lastShot > 2500 * gameState.towerSpeedBuff) {
                         let angle = Math.atan2(target.y - t.y, target.x - t.x);
@@ -581,13 +651,12 @@
             }
         });
 
-        // 밤 종료
         if (enemies.length === 0 && gameState.phase === 'NIGHT') {
             gameState.day++;
             initMorning();
         }
         
-        updateUI(); // 매 프레임 남은 적 업데이트
+        updateUI(); 
     }
 
     function draw() {
@@ -598,68 +667,52 @@
         for (let i = 0; i < canvas.width; i += 60) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
         for (let j = 0; j < canvas.height; j += 60) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(canvas.width, j); ctx.stroke(); }
 
-        // 수동 설치 가이드 원
-        if (gameState.phase === 'PLACING') {
-            ctx.beginPath();
-            let r = gameState.placingCard.id === 't_wall' ? 25 : 18;
-            ctx.arc(mouse.x, mouse.y, r, 0, Math.PI * 2);
-            let dist = Math.hypot(mouse.x - baseStation.x, mouse.y - baseStation.y);
-            ctx.fillStyle = dist > baseStation.radius + 20 ? 'rgba(74, 222, 128, 0.5)' : 'rgba(248, 113, 113, 0.5)';
-            ctx.fill();
-            
-            ctx.beginPath(); ctx.arc(baseStation.x, baseStation.y, baseStation.radius + 20, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(248, 113, 113, 0.3)'; ctx.lineWidth = 3; ctx.stroke();
-        }
-
         // 기지
         ctx.beginPath(); ctx.arc(baseStation.x, baseStation.y, baseStation.radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#bae6fd'; ctx.fill(); ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 5; ctx.stroke();
-        ctx.fillStyle = '#0f172a'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText("⭐본진⭐", baseStation.x, baseStation.y + 6);
+        ctx.fillStyle = '#bae6fd'; ctx.fill(); ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 4; ctx.stroke();
+        ctx.fillStyle = '#0f172a'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText("⭐본진⭐", baseStation.x, baseStation.y + 4);
 
-        // 타워 및 레이저 선
+        // 타워
         towers.forEach(t => {
             if(t.type === 't_laser' && t.isShooting) {
                 ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(t.isShooting.x, t.isShooting.y);
-                ctx.strokeStyle = '#fde047'; ctx.lineWidth = 4; ctx.stroke();
+                ctx.strokeStyle = '#fde047'; ctx.lineWidth = 3; ctx.stroke();
             }
             
             ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
             if(t.type === 't_wall') {
-                ctx.fillStyle = '#94a3b8'; ctx.fill(); ctx.strokeStyle = '#475569'; ctx.lineWidth = 4; ctx.stroke();
-                // 체력바
-                ctx.fillStyle = '#cbd5e1'; ctx.fillRect(t.x - 15, t.y - t.radius - 10, 30, 5);
-                ctx.fillStyle = '#3b82f6'; ctx.fillRect(t.x - 15, t.y - t.radius - 10, (t.hp / t.maxHp) * 30, 5);
+                ctx.fillStyle = '#94a3b8'; ctx.fill(); ctx.strokeStyle = '#475569'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#cbd5e1'; ctx.fillRect(t.x - 12, t.y - t.radius - 8, 24, 4);
+                ctx.fillStyle = '#3b82f6'; ctx.fillRect(t.x - 12, t.y - t.radius - 8, (t.hp / t.maxHp) * 24, 4);
             } else {
-                /* 오류가 났던 색상 코드 수정 부분 */
                 if (t.type === 't_basic') ctx.fillStyle = '#86efac';
                 else if (t.type === 't_cannon') ctx.fillStyle = '#fca5a5';
                 else if (t.type === 't_ice') ctx.fillStyle = '#7dd3fc';
                 else if (t.type === 't_laser') ctx.fillStyle = '#fde047';
-                else ctx.fillStyle = '#c4b5fd'; // 저격 타워
+                else ctx.fillStyle = '#c4b5fd'; 
 
                 ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
                 ctx.fillStyle = '#333';
-                ctx.beginPath(); ctx.arc(t.x - 6, t.y - 3, 2.5, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(t.x + 6, t.y - 3, 2.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(t.x - 4, t.y - 2, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(t.x + 4, t.y - 2, 2, 0, Math.PI*2); ctx.fill();
             }
         });
 
-        // 적 몬스터
+        // 적
         enemies.forEach(e => {
             ctx.beginPath(); ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
             ctx.fillStyle = e.type === 'boss' ? '#8b5cf6' : e.type === 'fast' ? '#fcd34d' : e.type === 'tank' ? '#f472b6' : '#f87171';
             if(e.isSlowed) ctx.fillStyle = '#67e8f9';
             ctx.fill();
             
-            // 보스는 눈이 큼
-            let eyeSize = e.type === 'boss' ? 4 : 2;
+            let eyeSize = e.type === 'boss' ? 3 : 1.5;
             ctx.fillStyle = 'black';
-            ctx.fillRect(e.x - 8, e.y - 5, eyeSize*2, eyeSize); ctx.fillRect(e.x + (8-eyeSize*2), e.y - 5, eyeSize*2, eyeSize);
+            ctx.fillRect(e.x - 6, e.y - 4, eyeSize*2, eyeSize); ctx.fillRect(e.x + (6-eyeSize*2), e.y - 4, eyeSize*2, eyeSize);
 
-            let hpWidth = e.type === 'boss' ? 60 : 24;
-            ctx.fillStyle = '#cbd5e1'; ctx.fillRect(e.x - hpWidth/2, e.y - e.radius - 8, hpWidth, 4);
-            ctx.fillStyle = e.type === 'boss' ? '#a855f7' : '#10b981'; ctx.fillRect(e.x - hpWidth/2, e.y - e.radius - 8, (e.hp / e.maxHp) * hpWidth, 4);
+            let hpWidth = e.type === 'boss' ? 40 : 20;
+            ctx.fillStyle = '#cbd5e1'; ctx.fillRect(e.x - hpWidth/2, e.y - e.radius - 6, hpWidth, 3);
+            ctx.fillStyle = e.type === 'boss' ? '#a855f7' : '#10b981'; ctx.fillRect(e.x - hpWidth/2, e.y - e.radius - 6, (e.hp / e.maxHp) * hpWidth, 3);
         });
 
         // 총알
@@ -677,29 +730,65 @@
         // 플레이어
         if (!player.isDead) {
             ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-            ctx.fillStyle = '#3b82f6'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
+            ctx.fillStyle = '#3b82f6'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
 
-            let aimAngle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-            let eX = Math.cos(aimAngle) * 5; let eY = Math.sin(aimAngle) * 5;
+            // 눈동자 (모바일: 터치 조준각도, PC: 마우스)
+            let drawAngle = player.isShooting ? player.aimAngle : Math.atan2(mouse.y - player.y, mouse.x - player.x);
+            let eX = Math.cos(drawAngle) * 4; let eY = Math.sin(drawAngle) * 4;
             ctx.fillStyle = 'white';
-            ctx.beginPath(); ctx.arc(player.x - 5 + eX, player.y - 3 + eY, 4, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(player.x + 5 + eX, player.y - 3 + eY, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(player.x - 4 + eX, player.y - 2 + eY, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(player.x + 4 + eX, player.y - 2 + eY, 3, 0, Math.PI*2); ctx.fill();
             ctx.fillStyle = 'black';
-            ctx.beginPath(); ctx.arc(player.x - 5 + eX, player.y - 3 + eY, 2, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(player.x + 5 + eX, player.y - 3 + eY, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(player.x - 4 + eX, player.y - 2 + eY, 1.5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(player.x + 4 + eX, player.y - 2 + eY, 1.5, 0, Math.PI*2); ctx.fill();
 
-            ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(mouse.x, mouse.y);
-            ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)'; ctx.lineWidth = 2; ctx.stroke();
+            if(!joysticks.right.active && !mouse.isClicked) {
+                // 사격하지 않을 때만 조준선 희미하게 (마우스 유저용)
+                ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(mouse.x, mouse.y);
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.1)'; ctx.lineWidth = 1; ctx.stroke();
+            }
+        }
+
+        // --- 모바일 가상 조이스틱 렌더링 ---
+        if(joysticks.left.active) {
+            ctx.beginPath(); ctx.arc(joysticks.left.ox, joysticks.left.oy, 40, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2; ctx.stroke();
+            
+            // 조이스틱 막대 범위 제한 시각화
+            let dx = joysticks.left.cx - joysticks.left.ox;
+            let dy = joysticks.left.cy - joysticks.left.oy;
+            let dist = Math.hypot(dx, dy);
+            let maxDist = 40;
+            if(dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
+            
+            ctx.beginPath(); ctx.arc(joysticks.left.ox + dx, joysticks.left.oy + dy, 20, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fill();
+        }
+
+        if(joysticks.right.active) {
+            ctx.beginPath(); ctx.arc(joysticks.right.ox, joysticks.right.oy, 40, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(239,68,68,0.15)'; ctx.fill(); ctx.strokeStyle = 'rgba(239,68,68,0.3)'; ctx.lineWidth = 2; ctx.stroke();
+            
+            let dx = joysticks.right.cx - joysticks.right.ox;
+            let dy = joysticks.right.cy - joysticks.right.oy;
+            let dist = Math.hypot(dx, dy);
+            let maxDist = 40;
+            if(dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
+            
+            ctx.beginPath(); ctx.arc(joysticks.right.ox + dx, joysticks.right.oy + dy, 20, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(239,68,68,0.5)'; ctx.fill();
+
+            // 사격 방향 레이저 가이드
+            ctx.beginPath(); ctx.moveTo(player.x, player.y); 
+            ctx.lineTo(player.x + Math.cos(player.aimAngle)*1000, player.y + Math.sin(player.aimAngle)*1000);
+            ctx.strokeStyle = 'rgba(239,68,68,0.2)'; ctx.lineWidth = 2; ctx.stroke();
         }
     }
 
     function updateUI() {
         document.getElementById('ui-day').innerText = gameState.day;
-        if(gameState.phase !== 'NIGHT') { document.getElementById('ui-phase').innerText = '아침'; }
-        
         document.getElementById('ui-level').innerText = gameState.level;
         document.getElementById('ui-exp-bar').style.width = `${(gameState.exp / gameState.maxExp) * 100}%`;
-        
         document.getElementById('ui-enemies-left').innerText = enemies.length;
         document.getElementById('ui-player-hp').innerText = Math.max(0, Math.floor(player.hp));
         document.getElementById('ui-base-hp').innerText = gameState.baseHp;
@@ -712,7 +801,6 @@
         requestAnimationFrame(gameLoop);
     }
 
-    // 게임 시작 시 초기화
     resize();
     initMorning();
     gameLoop();
